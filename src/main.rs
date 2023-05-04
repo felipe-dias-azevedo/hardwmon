@@ -1,9 +1,9 @@
-use nvml_wrapper::{Nvml, enum_wrappers::device::TemperatureSensor};
-use round::round;
-use sysinfo::{CpuExt, DiskExt, NetworkExt, ProcessExt, System, SystemExt};
+use nvml_wrapper::{enum_wrappers::device::TemperatureSensor, Nvml};
 use psutil::cpu::CpuPercentCollector;
 use psutil::sensors::temperatures;
 use psutil::{Degrees, Temperature};
+use round::round;
+use sysinfo::{CpuExt, DiskExt, NetworkExt, ProcessExt, System, SystemExt};
 
 fn main() {
     let nvidia = Nvml::init();
@@ -12,12 +12,61 @@ fn main() {
     let mut cpupc = CpuPercentCollector::new().unwrap();
 
     {
+        println!("------ SYSTEM -----");
+        let system = sys.long_os_version().unwrap_or_default();
+        let boot_time = sys.boot_time();
+        let distro = sys.distribution_id();
+        let hostname = sys.host_name().unwrap_or_default();
+
+        println!("Name: {}", system);
+        println!("Hostname: {}", hostname);
+        println!("Boot Time: {}", boot_time);
+        println!("Distro: {}", distro);
+    }
+
+    {
+        println!("------ RAM -----");
+        let total = sys.total_memory() as f64;
+        let available = sys.free_memory() as f64;
+        let used = sys.used_memory() as f64;
+
+        println!(
+            "Usage: {:.2} GB / {:.2} GB / {:.2} %",
+            used / 1_000_000_000.0,
+            total / 1_000_000_000.0,
+            (used / total) * 100.0
+        );
+        println!(
+            "Available: {:.2} GB / {:.2} GB / {:.2} %",
+            available / 1_000_000_000.0,
+            total / 1_000_000_000.0,
+            ((total - available) / total) * 100.0
+        )
+    }
+
+    {
+        println!("------ SWAP -----");
+        let total = sys.total_swap() as f64;
+        let available = sys.free_swap() as f64;
+        let used = sys.used_swap() as f64;
+
+        println!(
+            "Usage: {:.2} GB / {:.2} GB / {:.2} %",
+            used / 1_000_000_000.0,
+            total / 1_000_000_000.0,
+            (used / total) * 100.0
+        );
+        println!("Available: {:.2} GB", available / 1_000_000_000.0)
+    }
+
+    {
         println!("------ Network -----");
         let networks = sys.networks();
         for (interface, data) in networks {
             println!("Interface: {}", interface);
             println!("Download: {} Bytes", data.received());
-            println!("Upload: {} Bytes",data.transmitted());
+            println!("Upload: {} Bytes", data.transmitted());
+            println!();
         }
     }
 
@@ -38,22 +87,32 @@ fn main() {
             if let Ok(file_system) = String::from_utf8(Vec::from(file_system)) {
                 println!("File System: {}", file_system);
             }
-            println!("Space: {:.2} GB / {:.2} GB / {:.2} %", (space - available_space) / 1_000_000_000.0, space / 1_000_000_000.0, ((space - available_space) / space) * 100.0);
+            println!(
+                "Space: {:.2} GB / {:.2} GB / {:.2} %",
+                (space - available_space) / 1_000_000_000.0,
+                space / 1_000_000_000.0,
+                ((space - available_space) / space) * 100.0
+            );
             println!("Mounted: {:?}", mount_point);
             println!("Removable: {}", is_removable);
+            println!();
         }
 
-        let disk_usage = sys.processes().into_iter().filter_map(|(_pid,  process)| {
-            let disk_usage = process.disk_usage();
-            let read = disk_usage.read_bytes;
-            let write = disk_usage.written_bytes;
+        let disk_usage = sys
+            .processes()
+            .into_iter()
+            .filter_map(|(_pid, process)| {
+                let disk_usage = process.disk_usage();
+                let read = disk_usage.read_bytes;
+                let write = disk_usage.written_bytes;
 
-            if read == 0 || write == 0 {
-                return None;
-            }
+                if read == 0 || write == 0 {
+                    return None;
+                }
 
-            return Some((read, write));
-        }).reduce(|acc, e| (acc.0 + e.0, acc.1 + e.1));
+                return Some((read, write));
+            })
+            .reduce(|acc, e| (acc.0 + e.0, acc.1 + e.1));
 
         if let Some((read, write)) = disk_usage {
             println!();
@@ -82,21 +141,31 @@ fn main() {
                 if let Some(label) = temp.label() {
                     println!("Label: {}", label);
                 }
+                println!();
             }
         }
     }
 
     {
         println!("------ CPU -----");
+        let cpus = sys.cpus();
         let brand = sys.global_cpu_info().brand();
-        let freq = sys.global_cpu_info().frequency();
-        let usage = sys.global_cpu_info().cpu_usage();
+        // let freq = sys.global_cpu_info().frequency();
+        // let usage = sys.global_cpu_info().cpu_usage();
 
         println!("Name: {}", brand);
-        println!("Frequency: {} MHz", freq);
-        println!("Usage: {:.0}%", usage);
-    }
 
+        for i in 0..cpus.len() {
+            let cpu = &cpus[i];
+
+            let freq = cpu.frequency();
+            let usage = cpu.cpu_usage();
+    
+            println!("[CPU {}] Frequency: {} MHz", i, freq);
+            println!("[CPU {}] Usage: {:.0}%", i, usage);
+            println!();
+        }
+    }
 
     if let Some(nvidia) = nvidia.ok() {
         let device = nvidia.device_by_index(0);
@@ -112,7 +181,15 @@ fn main() {
 
             println!("Name: {}", name);
             println!("Fan Speed: {}%", fan_speed);
-            println!("Memory: {} MB / {} MB / {}%", memory_info.used / 1000000, memory_info.total / 1000000, round(memory_info.used as f64 / memory_info.total as f64 * 100.0, 1));
+            println!(
+                "Memory: {} MB / {} MB / {}%",
+                memory_info.used / 1000000,
+                memory_info.total / 1000000,
+                round(
+                    memory_info.used as f64 / memory_info.total as f64 * 100.0,
+                    1
+                )
+            );
             println!("Power: {} W", power_usage / 1000);
             println!("Temperature: {} C", temperature);
             println!("Usage: {}% (GPU)", utilization.gpu);
