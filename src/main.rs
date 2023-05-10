@@ -1,3 +1,9 @@
+use gtk::{
+    gio::ApplicationFlags,
+    glib,
+    prelude::*,
+};
+use gtk::glib::clone;
 use nvml_wrapper::{enum_wrappers::device::TemperatureSensor, Nvml};
 use psutil::cpu::CpuPercentCollector;
 use psutil::sensors::temperatures;
@@ -6,6 +12,34 @@ use round::round;
 use sysinfo::{CpuExt, DiskExt, NetworkExt, ProcessExt, System, SystemExt};
 
 fn main() {
+
+    gtk::init().expect("GTK failed");
+
+    let app = gtk::Application::new(
+        Some("com.felipe.iSmallTalk"),
+        ApplicationFlags::HANDLES_OPEN,
+    );
+
+    let builder = gtk::Builder::from_file("src/assets/windows/hardwmon-window.glade");
+    let window: gtk::Window = builder.object("main-window").expect("Couldn't set window");
+
+    window.show_all();
+
+    app.connect_activate(clone!(@strong window => move |app| {
+        if let Some(existing_window) = app.active_window() {
+            existing_window.present();
+        } else {
+            window.set_application(Some(app));
+            app.add_window(&window);
+        }
+    }));
+
+    window.connect_delete_event(|_, _| {
+        gtk::main_quit();
+
+        Inhibit(false)
+    });
+
     let nvidia = Nvml::init();
     let mut sys = System::new_all();
     sys.refresh_all();
@@ -196,4 +230,6 @@ fn main() {
             println!("Usage: {}% (MEM)", utilization.memory);
         }
     }
+
+    gtk::main();
 }
