@@ -1,6 +1,5 @@
 use gtk::{
     gio::ApplicationFlags,
-    glib,
     prelude::*,
 };
 use gtk::glib::clone;
@@ -39,6 +38,27 @@ fn main() {
 
         Inhibit(false)
     });
+
+    let headerpaned: gtk::Paned = builder
+        .object("headerpaned")
+        .expect("Couldn't get headerpaned");
+    headerpaned.set_size_request(200, -1);
+
+    let contentpaned: gtk::Paned = builder
+        .object("contentpaned")
+        .expect("Couldn't get contentpaned");
+
+    let headerpanelbutton: gtk::Button = builder
+        .object("headerpanelbutton")
+        .expect("Couldn't get headerpanelbutton");
+
+    headerpanelbutton.connect_clicked(clone!(@strong headerpaned => move |_| {
+       if headerpaned.is_visible() {
+           headerpaned.hide();
+       } else {
+           headerpaned.show();
+       }
+    }));
 
     let nvidia = Nvml::init();
     let mut sys = System::new_all();
