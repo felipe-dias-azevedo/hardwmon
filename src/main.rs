@@ -11,7 +11,6 @@ use psutil::sensors::temperatures;
 use psutil::{Degrees, Temperature};
 use round::round;
 use sysinfo::{CpuExt, DiskExt, NetworkExt, ProcessExt, System, SystemExt};
-//use crate::monitor::get_data;
 
 fn main() {
 
@@ -53,10 +52,12 @@ fn main() {
     let subheader: gtk::HeaderBar = builder
         .object("subheader")
         .expect("Couldn't get subheader");
+    subheader.set_visible(false);
 
     let subcontent: gtk::Box = builder
         .object("subcontent")
         .expect("Couldn't get subcontent");
+    subcontent.set_visible(false);
 
     let headerpanelbutton: gtk::Button = builder
         .object("headerpanelbutton")
@@ -71,59 +72,34 @@ fn main() {
         subcontent.set_visible(!subcontent.is_visible());
     }));
 
-    // let data = get_data();
-    //
-    //
-    // maintreeview.set_model(Some(&data));
-    //
-    // fn expander_cell_data_func(
-    //     tree_view: &gtk::TreeView,
-    //     expander: &gtk::CellRendererToggle,
-    //     path: &gtk::TreePath,
-    // ) {
-    //     let tree_model = tree_view.model().unwrap();
-    //     let iter = tree_model.iter(path).unwrap();
-    //
-    //     // Get the value of the "has_children" column for the current row
-    //     let has_children: bool = tree_model
-    //         .get_value(&iter, 0i32)
-    //         .get()
-    //         .unwrap();
-    //
-    //     // Set the "active" property of the expander based on the "has_children" value
-    //     expander.set_active(has_children);
-    // }
-    // let expander_cell_data_func_box= Some(Box::new(expander_cell_data_func));
-    //
-    // // Define the columns
-    // let column = gtk::TreeViewColumn::new();
-    // let renderer = gtk::CellRendererText::new();
-    // column.pack_start(&renderer, true);
-    // column.add_attribute(&renderer, "text", 0);
-    // column.set_title("Name");
-    // maintreeview.append_column(&column);
-    //
-    // let column = gtk::TreeViewColumn::new();
-    // let renderer = gtk::CellRendererText::new();
-    // column.pack_start(&renderer, true);
-    // column.add_attribute(&renderer, "text", 1);
-    // column.set_title("Value");
-    // maintreeview.append_column(&column);
-    //
-    // // Set the expander cell data function
-    // let renderer = gtk::CellRendererText::new();
-    // let column = gtk::TreeViewColumn::new();
-    // column.pack_start(&renderer, true);
-    // column.set_cell_data_func(&renderer, expander_cell_data_func_box);
-    // maintreeview.append_column(&column);
-    //
-    // // Create a scrolled window and add the tree view to it
-    // let scrolled_window = gtk::ScrolledWindow::new(None, None);
-    // scrolled_window.set_vexpand(true);
-    // scrolled_window.set_policy(gtk::PolicyType::Automatic, gtk::PolicyType::Automatic);
-    // scrolled_window.add(&maintreeview);
+    let data = monitor::get_data();
 
+    maintreeview.set_model(Some(&data));
 
+    // Define the columns
+    let renderer = gtk::CellRendererText::new();
+    let column = gtk::TreeViewColumn::new();
+    gtk::prelude::TreeViewColumnExt::pack_start(&column, &renderer, false);
+    gtk::prelude::TreeViewColumnExt::add_attribute(&column, &renderer, "text", 0);
+    column.set_resizable(true);
+    column.set_sizing(gtk::TreeViewColumnSizing::GrowOnly);
+    column.set_title("Name");
+    maintreeview.append_column(&column);
+
+    let renderer = gtk::CellRendererText::new();
+    let column = gtk::TreeViewColumn::new();
+    gtk::prelude::TreeViewColumnExt::pack_start(&column, &renderer, false);
+    gtk::prelude::TreeViewColumnExt::add_attribute(&column,&renderer, "text", 1);
+    column.set_resizable(true);
+    column.set_sizing(gtk::TreeViewColumnSizing::GrowOnly);
+    column.set_title("Value");
+    maintreeview.append_column(&column);
+
+    // Set the expander cell data function
+    // let renderer = gtk::CellRendererText::new();
+    // let column = gtk::TreeViewColumn::new();
+    // gtk::prelude::TreeViewColumnExt::pack_start(&column, &renderer, true);
+    // maintreeview.append_column(&column);
 
     let nvidia = Nvml::init();
     let mut sys = System::new_all();
