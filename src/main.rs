@@ -1,3 +1,5 @@
+mod monitor;
+
 use gtk::{
     gio::ApplicationFlags,
     prelude::*,
@@ -9,18 +11,19 @@ use psutil::sensors::temperatures;
 use psutil::{Degrees, Temperature};
 use round::round;
 use sysinfo::{CpuExt, DiskExt, NetworkExt, ProcessExt, System, SystemExt};
+//use crate::monitor::get_data;
 
 fn main() {
 
     gtk::init().expect("GTK failed");
 
     let app = gtk::Application::new(
-        Some("com.felipe.iSmallTalk"),
+        Some("com.felipe.hardwmon"),
         ApplicationFlags::HANDLES_OPEN,
     );
 
     let builder = gtk::Builder::from_file("src/assets/windows/hardwmon-window.glade");
-    let window: gtk::Window = builder.object("main-window").expect("Couldn't set window");
+    let window: gtk::Window = builder.object("appwindow").expect("Couldn't set window");
 
     window.show_all();
 
@@ -42,23 +45,85 @@ fn main() {
     let headerpaned: gtk::Paned = builder
         .object("headerpaned")
         .expect("Couldn't get headerpaned");
-    headerpaned.set_size_request(200, -1);
 
     let contentpaned: gtk::Paned = builder
         .object("contentpaned")
         .expect("Couldn't get contentpaned");
 
+    let subheader: gtk::HeaderBar = builder
+        .object("subheader")
+        .expect("Couldn't get subheader");
+
+    let subcontent: gtk::Box = builder
+        .object("subcontent")
+        .expect("Couldn't get subcontent");
+
     let headerpanelbutton: gtk::Button = builder
         .object("headerpanelbutton")
         .expect("Couldn't get headerpanelbutton");
 
-    headerpanelbutton.connect_clicked(clone!(@strong headerpaned => move |_| {
-       if headerpaned.is_visible() {
-           headerpaned.hide();
-       } else {
-           headerpaned.show();
-       }
+    let maintreeview: gtk::TreeView = builder
+        .object("maintreeview")
+        .expect("Couldn't get maintreeview");
+
+    headerpanelbutton.connect_clicked(clone!(@strong subheader, @strong subcontent => move |_| {
+        subheader.set_visible(!subheader.is_visible());
+        subcontent.set_visible(!subcontent.is_visible());
     }));
+
+    // let data = get_data();
+    //
+    //
+    // maintreeview.set_model(Some(&data));
+    //
+    // fn expander_cell_data_func(
+    //     tree_view: &gtk::TreeView,
+    //     expander: &gtk::CellRendererToggle,
+    //     path: &gtk::TreePath,
+    // ) {
+    //     let tree_model = tree_view.model().unwrap();
+    //     let iter = tree_model.iter(path).unwrap();
+    //
+    //     // Get the value of the "has_children" column for the current row
+    //     let has_children: bool = tree_model
+    //         .get_value(&iter, 0i32)
+    //         .get()
+    //         .unwrap();
+    //
+    //     // Set the "active" property of the expander based on the "has_children" value
+    //     expander.set_active(has_children);
+    // }
+    // let expander_cell_data_func_box= Some(Box::new(expander_cell_data_func));
+    //
+    // // Define the columns
+    // let column = gtk::TreeViewColumn::new();
+    // let renderer = gtk::CellRendererText::new();
+    // column.pack_start(&renderer, true);
+    // column.add_attribute(&renderer, "text", 0);
+    // column.set_title("Name");
+    // maintreeview.append_column(&column);
+    //
+    // let column = gtk::TreeViewColumn::new();
+    // let renderer = gtk::CellRendererText::new();
+    // column.pack_start(&renderer, true);
+    // column.add_attribute(&renderer, "text", 1);
+    // column.set_title("Value");
+    // maintreeview.append_column(&column);
+    //
+    // // Set the expander cell data function
+    // let renderer = gtk::CellRendererText::new();
+    // let column = gtk::TreeViewColumn::new();
+    // column.pack_start(&renderer, true);
+    // column.set_cell_data_func(&renderer, expander_cell_data_func_box);
+    // maintreeview.append_column(&column);
+    //
+    // // Create a scrolled window and add the tree view to it
+    // let scrolled_window = gtk::ScrolledWindow::new(None, None);
+    // scrolled_window.set_vexpand(true);
+    // scrolled_window.set_policy(gtk::PolicyType::Automatic, gtk::PolicyType::Automatic);
+    // scrolled_window.add(&maintreeview);
+
+
 
     let nvidia = Nvml::init();
     let mut sys = System::new_all();
