@@ -2,7 +2,7 @@
 <!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
-  <object class="GtkAboutDialog" id="main-aboutdialog">
+  <object class="GtkAboutDialog" id="aboutdialog">
     <property name="can-focus">False</property>
     <property name="modal">True</property>
     <property name="window-position">center-on-parent</property>
@@ -13,7 +13,7 @@
     <property name="website">https://github.com/felipe-dias-azevedo/hardwmon/</property>
     <property name="website-label" translatable="yes">Github</property>
     <property name="authors">Felipe Azevedo</property>
-    <property name="logo-icon-name">applications-system</property>
+    <property name="logo-icon-name">utilities-system-monitor</property>
     <property name="license-type">gpl-3-0</property>
     <child internal-child="vbox">
       <object class="GtkBox">
@@ -40,7 +40,7 @@
       </object>
     </child>
   </object>
-  <object class="GtkPopover" id="main-menupopover">
+  <object class="GtkPopover" id="menupopover">
     <property name="can-focus">False</property>
     <child>
       <object class="GtkBox">
@@ -56,7 +56,7 @@
         <property name="spacing">8</property>
         <property name="homogeneous">True</property>
         <child>
-          <object class="GtkButton">
+          <object class="GtkButton" id="preferencesbutton">
             <property name="label">gtk-preferences</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
@@ -71,7 +71,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButton" id="main-aboutbutton">
+          <object class="GtkButton" id="aboutbutton">
             <property name="label">gtk-about</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
@@ -89,6 +89,8 @@
     </child>
   </object>
   <object class="GtkApplicationWindow" id="appwindow">
+    <property name="width-request">400</property>
+    <property name="height-request">300</property>
     <property name="can-focus">False</property>
     <property name="window-position">center</property>
     <property name="default-width">600</property>
@@ -198,7 +200,7 @@
                 <property name="receives-default">True</property>
                 <property name="relief">none</property>
                 <property name="direction">none</property>
-                <property name="popover">main-menupopover</property>
+                <property name="popover">menupopover</property>
                 <child>
                   <placeholder/>
                 </child>
@@ -213,6 +215,7 @@
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
+                <property name="always-show-image">True</property>
               </object>
               <packing>
                 <property name="position">1</property>

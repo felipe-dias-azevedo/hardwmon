@@ -41,6 +41,19 @@ fn main() {
         Inhibit(false)
     });
 
+    let menupopover: gtk::Popover = builder
+        .object("menupopover")
+        .expect("Couldn't get menupopover");
+
+    let aboutbutton: gtk::Button = builder
+        .object("aboutbutton")
+        .expect("Couldn't get aboutbutton");
+
+    let preferencesbutton: gtk::Button = builder
+        .object("preferencesbutton")
+        .expect("Couldn't get preferencesbutton");
+    preferencesbutton.set_sensitive(false);
+
     let headerpaned: gtk::Paned = builder
         .object("headerpaned")
         .expect("Couldn't get headerpaned");
@@ -62,6 +75,7 @@ fn main() {
     let headerpanelbutton: gtk::Button = builder
         .object("headerpanelbutton")
         .expect("Couldn't get headerpanelbutton");
+    headerpanelbutton.set_sensitive(false);
 
     let maintreeview: gtk::TreeView = builder
         .object("maintreeview")
@@ -72,26 +86,46 @@ fn main() {
         subcontent.set_visible(!subcontent.is_visible());
     }));
 
-    let data = monitor::get_data();
+    aboutbutton.connect_clicked(clone!(
+        @strong menupopover,
+        @strong builder
+        => move |_| {
 
-    maintreeview.set_model(Some(&data));
+            let aboutdialog: gtk::AboutDialog = builder
+                .object("aboutdialog")
+                .expect("Couldn't get aboutdialog");
+
+            aboutdialog
+                .connect_delete_event(move |x, _| x.hide_on_delete());
+
+            aboutdialog.show_all();
+
+            menupopover.hide();
+    }));
+
+    let tree_model = monitor::get_tree_model();
+
+    maintreeview.set_model(Some(&tree_model));
+    maintreeview.expand_all();
 
     // Define the columns
     let renderer = gtk::CellRendererText::new();
     let column = gtk::TreeViewColumn::new();
-    gtk::prelude::TreeViewColumnExt::pack_start(&column, &renderer, false);
+    gtk::prelude::TreeViewColumnExt::pack_start(&column, &renderer, true);
     gtk::prelude::TreeViewColumnExt::add_attribute(&column, &renderer, "text", 0);
     column.set_resizable(true);
     column.set_sizing(gtk::TreeViewColumnSizing::GrowOnly);
+    column.set_min_width(150);
     column.set_title("Name");
     maintreeview.append_column(&column);
 
     let renderer = gtk::CellRendererText::new();
     let column = gtk::TreeViewColumn::new();
-    gtk::prelude::TreeViewColumnExt::pack_start(&column, &renderer, false);
+    gtk::prelude::TreeViewColumnExt::pack_start(&column, &renderer, true);
     gtk::prelude::TreeViewColumnExt::add_attribute(&column,&renderer, "text", 1);
     column.set_resizable(true);
     column.set_sizing(gtk::TreeViewColumnSizing::GrowOnly);
+    column.set_min_width(150);
     column.set_title("Value");
     maintreeview.append_column(&column);
 
