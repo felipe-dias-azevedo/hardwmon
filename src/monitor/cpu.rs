@@ -8,25 +8,23 @@ pub struct CpuData {
     pub frequency: Vec<u64>
 }
 
-pub fn get_cpu_data(sys: &System) {
-    {
-        println!("------ CPU -----");
+impl CpuData {
+    pub fn new(sys: &System) -> CpuData {
         let cpus = sys.cpus();
         let brand = sys.global_cpu_info().brand();
-        // let freq = sys.global_cpu_info().frequency();
-        // let usage = sys.global_cpu_info().cpu_usage();
+        let frequency_total = sys.global_cpu_info().frequency();
+        let usage_total = sys.global_cpu_info().cpu_usage();
 
-        println!("Name: {}", brand);
+        let (usage, frequency): (Vec<f32>, Vec<u64>) = cpus.into_iter()
+            .map(|cpu| (cpu.cpu_usage(), cpu.frequency()))
+            .unzip();
 
-        for i in 0..cpus.len() {
-            let cpu = &cpus[i];
-
-            let freq = cpu.frequency();
-            let usage = cpu.cpu_usage();
-
-            println!("[CPU {}] Frequency: {} MHz", i, freq);
-            println!("[CPU {}] Usage: {:.0}%", i, usage);
-            println!();
+        CpuData {
+            brand: String::from(brand),
+            frequency_total,
+            usage_total,
+            usage,
+            frequency
         }
     }
 }

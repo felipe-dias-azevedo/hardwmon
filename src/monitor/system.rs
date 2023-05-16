@@ -1,5 +1,12 @@
 use sysinfo::{System, SystemExt};
 
+pub struct SystemData {
+    pub system: String,
+    pub boot_time: u64,
+    pub distro: String,
+    pub hostname: String
+}
+
 pub fn get_system_data(sys: &System) {
     {
         println!("------ SYSTEM -----");

@@ -1,14 +1,21 @@
 use sysinfo::{NetworkExt, System, SystemExt};
 
-pub fn get_network_data(sys: &System) {
-    {
-        println!("------ Network -----");
+pub struct NetworkData {
+    pub interface: String,
+    pub download_total: u64,
+    pub upload_total: u64
+}
+
+impl NetworkData {
+    pub fn new(sys: &System) -> Vec<NetworkData> {
         let networks = sys.networks();
-        for (interface, data) in networks {
-            println!("Interface: {}", interface);
-            println!("Download: {} Bytes", data.received());
-            println!("Upload: {} Bytes", data.transmitted());
-            println!();
-        }
+
+        networks.into_iter().map(|(interface, data)| {
+            NetworkData {
+                interface: String::from(interface),
+                download_total: data.received(),
+                upload_total: data.transmitted()
+            }
+        }).collect()
     }
 }

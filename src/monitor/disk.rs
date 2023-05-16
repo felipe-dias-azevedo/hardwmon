@@ -1,10 +1,27 @@
-use sysinfo::{DiskExt, ProcessExt, System, SystemExt};
+use sysinfo::{DiskExt, DiskType, ProcessExt, System, SystemExt};
 
-pub fn get_disk_data(sys: &System) {
-    {
-        println!("------ Disks -----");
+pub struct DisksData {
+    pub disks: Vec<DiskData>,
+    pub read_total: u64,
+    pub write_total: u64
+}
+
+pub struct DiskData {
+    pub name: String,
+    pub disk_type: Option<String>,
+    pub file_system: Option<String>,
+    pub mount_point: String,
+    pub removable: bool,
+    pub space_available: f64,
+    pub space_total: f64,
+    pub space_used: f64
+}
+
+impl DisksData {
+    pub fn new(sys: &System) -> DisksData {
         let disks = sys.disks();
-        for d in disks {
+
+        let disks_data = disks.into_iter().map(|d| {
             let name = d.name();
             let disk_type = d.type_();
             let file_system = d.file_system();
@@ -13,21 +30,21 @@ pub fn get_disk_data(sys: &System) {
             let mount_point = d.mount_point();
             let is_removable = d.is_removable();
 
-            println!("Name: {:?}", name);
-            println!("Type: {:?}", disk_type);
-            if let Ok(file_system) = String::from_utf8(Vec::from(file_system)) {
-                println!("File System: {}", file_system);
+            DiskData {
+                name: name.to_os_string().into_string().unwrap_or_default(),
+                disk_type: match disk_type {
+                    DiskType::SSD => Some(String::from("SSD")),
+                    DiskType::HDD => Some(String::from("HD")),
+                    _ => None
+                },
+                file_system: String::from_utf8(Vec::from(file_system)).ok(),
+                space_total: space,
+                space_available: available_space,
+                space_used: space - available_space,
+                mount_point: String::from(mount_point.into()),
+                removable: is_removable
             }
-            println!(
-                "Space: {:.2} GB / {:.2} GB / {:.2} %",
-                (space - available_space) / 1_000_000_000.0,
-                space / 1_000_000_000.0,
-                ((space - available_space) / space) * 100.0
-            );
-            println!("Mounted: {:?}", mount_point);
-            println!("Removable: {}", is_removable);
-            println!();
-        }
+        }).collect::<Vec<DiskData>>();
 
         let disk_usage = sys
             .processes()
@@ -45,10 +62,12 @@ pub fn get_disk_data(sys: &System) {
             })
             .reduce(|acc, e| (acc.0 + e.0, acc.1 + e.1));
 
-        if let Some((read, write)) = disk_usage {
-            println!();
-            println!("Read: {} Bytes", read);
-            println!("Write: {} Bytes", write);
+        let Some((read, write)) = disk_usage;
+
+        DisksData {
+            read_total: read,
+            write_total: write,
+            disks: disks_data
         }
     }
 }

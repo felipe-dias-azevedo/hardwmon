@@ -1,5 +1,14 @@
 use sysinfo::{System, SystemExt};
 
+pub struct RamData {
+    pub ram_available: f64,
+    pub ram_total: f64,
+    pub ram_used: f64,
+    pub swap_available: f64,
+    pub swap_total: f64,
+    pub swap_used: f64
+}
+
 pub fn get_ram_data(sys: &System) {
     {
         println!("------ RAM -----");
