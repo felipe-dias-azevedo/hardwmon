@@ -7,11 +7,25 @@ mod system;
 mod disk;
 
 use gtk::{glib, prelude::*};
+use nvml_wrapper::{Nvml, error::NvmlError};
+use sysinfo::System;
 
 pub struct MonitorRow {
     title: String,
     value: Option<String>,
     child: Vec<MonitorRow>,
+}
+
+pub fn get_hardware_data(sys: &System, nvidia: &Result<Nvml, NvmlError>) -> Vec<MonitorRow> {
+    let cpu = cpu::CpuData::new(sys);
+    let disk = disk::DisksData::new(sys);
+    let gpu = gpu::GpuData::new(nvidia);
+    let network = network::NetworkData::new(sys);
+    let ram = ram::RamData::new(sys);
+    let sensors = sensors::SensorData::new();
+    let system = system::SystemData::new(sys);
+
+    vec![]
 }
 
 fn simulate_data() -> Vec<MonitorRow> {
@@ -78,10 +92,8 @@ fn populate_data(store: &gtk::TreeStore, data: Vec<MonitorRow>, old_iter: Option
     }
 }
 
-pub fn get_tree_model() -> gtk::TreeStore {
+pub fn get_tree_model(data: Vec<MonitorRow>) -> gtk::TreeStore {
     let store = gtk::TreeStore::new(&[glib::Type::STRING, glib::Type::STRING]);
-
-    let data = simulate_data();
 
     populate_data(&store, data, None);
 

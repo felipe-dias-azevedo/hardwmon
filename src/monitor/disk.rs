@@ -2,8 +2,8 @@ use sysinfo::{DiskExt, DiskType, ProcessExt, System, SystemExt};
 
 pub struct DisksData {
     pub disks: Vec<DiskData>,
-    pub read_total: u64,
-    pub write_total: u64
+    pub read_total: Option<u64>,
+    pub write_total: Option<u64>
 }
 
 pub struct DiskData {
@@ -41,7 +41,7 @@ impl DisksData {
                 space_total: space,
                 space_available: available_space,
                 space_used: space - available_space,
-                mount_point: String::from(mount_point.into()),
+                mount_point: String::from(mount_point.to_str().unwrap_or_default()),
                 removable: is_removable
             }
         }).collect::<Vec<DiskData>>();
@@ -62,7 +62,10 @@ impl DisksData {
             })
             .reduce(|acc, e| (acc.0 + e.0, acc.1 + e.1));
 
-        let Some((read, write)) = disk_usage;
+        let (read, write) = match disk_usage {
+            Some(x) => (Some(x.0), Some(x.1)),
+            _ => (None, None)
+        };
 
         DisksData {
             read_total: read,

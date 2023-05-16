@@ -34,7 +34,8 @@ fn main() {
     let mut sys = System::new_all();
     sys.refresh_all();
 
-    let tree_model = monitor::get_tree_model();
+    let data = monitor::get_hardware_data(&sys, &nvidia);
+    let tree_model = monitor::get_tree_model(data);
 
     window.set_treeview(tree_model);
 
