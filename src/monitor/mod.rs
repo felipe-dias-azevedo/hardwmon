@@ -1,3 +1,11 @@
+mod cpu;
+mod gpu;
+mod sensors;
+mod ram;
+mod network;
+mod system;
+mod disk;
+
 use gtk::{glib, prelude::*};
 
 pub struct MonitorRow {
