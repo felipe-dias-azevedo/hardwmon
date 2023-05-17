@@ -17,15 +17,15 @@ pub struct MonitorRow {
 }
 
 pub fn get_hardware_data(sys: &System, nvidia: &Result<Nvml, NvmlError>) -> Vec<MonitorRow> {
-    let cpu = cpu::CpuData::new(sys);
-    let disk = disk::DisksData::new(sys);
-    let gpu = gpu::GpuData::new(nvidia);
-    let network = network::NetworkData::new(sys);
-    let ram = ram::RamData::new(sys);
-    let sensors = sensors::SensorData::new();
+    let cpu = cpu::CpuData::new(sys).format();
+    let ram = ram::RamData::new(sys).format();
+    let disk = disk::DisksData::new(sys).format();
+    let network = network::NetworkData::format(network::NetworkData::new(sys));
+    let gpu = gpu::GpuData::format(gpu::GpuData::new(nvidia));
+    let sensors = sensors::SensorData::format(sensors::SensorData::new());
     let system = system::SystemData::new(sys);
 
-    vec![]
+    vec![cpu, ram, disk, network, sensors, gpu]
 }
 
 fn simulate_data() -> Vec<MonitorRow> {

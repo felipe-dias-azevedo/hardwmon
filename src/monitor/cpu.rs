@@ -1,11 +1,12 @@
 use sysinfo::{CpuExt, System, SystemExt};
+use crate::monitor::MonitorRow;
 
 pub struct CpuData {
     pub brand: String,
     pub usage_total: f32,
     pub frequency_total: u64,
     pub usage: Vec<f32>,
-    pub frequency: Vec<u64>
+    pub frequency: Vec<u64>,
 }
 
 impl CpuData {
@@ -24,7 +25,53 @@ impl CpuData {
             frequency_total,
             usage_total,
             usage,
-            frequency
+            frequency,
+        }
+    }
+
+    pub fn format(&self) -> MonitorRow {
+        MonitorRow {
+            title: String::from("CPU"),
+            value: None,
+            child: vec![
+                MonitorRow {
+                    title: String::from("Brand"),
+                    value: Some(self.brand.to_owned()),
+                    child: vec![],
+                },
+                MonitorRow {
+                    title: String::from("Frequency Total"),
+                    value: Some(format!("{} MHz", self.frequency_total)),
+                    child: vec![],
+                },
+                MonitorRow {
+                    title: String::from("Usage Total"),
+                    value: Some(format!("{:.0}%", self.usage_total)),
+                    child: vec![],
+                },
+                MonitorRow {
+                    title: String::from("Frequency per Core"),
+                    value: None,
+                    child: self.frequency.iter().enumerate().map(|(i, f)| {
+                        MonitorRow {
+                            title: format!("Core {}", i),
+                            value: Some(format!("{} MHz", f)),
+                            child: vec![],
+                        }
+                    }).collect(),
+                },
+                MonitorRow {
+                    title: String::from("Usage per Core"),
+                    value: None,
+                    child: self.usage.iter().enumerate().map(|(i, f)| {
+                        MonitorRow {
+                            title: format!("Core {}", i),
+                            value: Some(format!("{:.0}%", f)),
+                            child: vec![],
+                        }
+                    }).collect(),
+                },
+            ],
         }
     }
 }

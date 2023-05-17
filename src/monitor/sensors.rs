@@ -1,4 +1,5 @@
 use psutil::sensors::temperatures;
+use crate::monitor::MonitorRow;
 
 pub struct SensorData {
     name: String,
@@ -35,5 +36,41 @@ impl SensorData {
                 }
             })
             .collect()
+    }
+
+    pub fn format(sensors: Vec<SensorData>) -> MonitorRow {
+        MonitorRow {
+            title: String::from("SENSORS"),
+            value: None,
+            child: sensors.iter().map(|sensor| {
+                MonitorRow {
+                    title: sensor.name.to_owned(),
+                    value: None,
+                    child: vec![
+                        MonitorRow {
+                            title: String::from("Temperature"),
+                            value: Some(format!("{:.0} ºC", sensor.temperature)),
+                            child: vec![]
+                        },
+                        MonitorRow {
+                            title: String::from("Temperature Max"),
+                            value: match sensor.temperature_max {
+                                Some(x) => Some(format!("{:.0} ºC", x)),
+                                _ => Some(String::from("-"))
+                            },
+                            child: vec![]
+                        },
+                        MonitorRow {
+                            title: String::from("Label"),
+                            value: match &sensor.label {
+                                Some(x) => Some(x.to_owned()),
+                                _ => Some(String::from("-"))
+                            },
+                            child: vec![]
+                        }
+                    ]
+                }
+            }).collect()
+        }
     }
 }

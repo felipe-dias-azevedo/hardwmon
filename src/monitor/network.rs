@@ -1,4 +1,5 @@
 use sysinfo::{NetworkExt, System, SystemExt};
+use crate::monitor::MonitorRow;
 
 pub struct NetworkData {
     pub interface: String,
@@ -17,5 +18,31 @@ impl NetworkData {
                 upload_total: data.transmitted()
             }
         }).collect()
+    }
+
+    pub fn format(networks: Vec<NetworkData>) -> MonitorRow {
+        MonitorRow {
+            title: String::from("NETWORK"),
+            value: None,
+            child: networks.iter().map(|network| {
+
+                MonitorRow {
+                    title: network.interface.to_owned(),
+                    value: None,
+                    child: vec![
+                        MonitorRow {
+                            title: String::from("Download Total"),
+                            value: Some(format!("{} Bytes", network.download_total)),
+                            child: vec![]
+                        },
+                        MonitorRow {
+                            title: String::from("Upload Total"),
+                            value: Some(format!("{} Bytes", network.upload_total)),
+                            child: vec![]
+                        }
+                    ]
+                }
+            }).collect()
+        }
     }
 }

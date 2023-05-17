@@ -1,17 +1,9 @@
 mod monitor;
 mod views;
 
-use gtk::{
-    gio::ApplicationFlags,
-    prelude::*,
-};
-use gtk::glib::clone;
-use nvml_wrapper::{enum_wrappers::device::TemperatureSensor, Nvml};
-use psutil::cpu::CpuPercentCollector;
-use psutil::sensors::temperatures;
-use psutil::{Degrees, Temperature};
-use round::round;
-use sysinfo::{CpuExt, DiskExt, NetworkExt, ProcessExt, System, SystemExt};
+
+use nvml_wrapper::{Nvml};
+use sysinfo::{System, SystemExt};
 
 use crate::views::window::Window;
 use crate::views::app::Application;
@@ -39,5 +31,6 @@ fn main() {
 
     window.set_treeview(tree_model);
 
-    gtk::main();
+    app.start();
+    //gtk::main();
 }
