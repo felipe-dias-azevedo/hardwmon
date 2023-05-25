@@ -137,7 +137,7 @@ impl GpuData {
                             child: vec![]
                         },
                         MonitorRow {
-                            title: String::from("GPU Memory Usage"),
+                            title: String::from("GPU Usage"),
                             value: match gpu.usage_gpu {
                                 Some(x) => Some(format!("{}%", x)),
                                 _ => Some(String::from("-"))

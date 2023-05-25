@@ -1,5 +1,6 @@
 use sysinfo::{NetworkExt, System, SystemExt};
 use crate::monitor::MonitorRow;
+use crate::views::get_bytevalue_from;
 
 pub struct NetworkData {
     pub interface: String,
@@ -31,13 +32,13 @@ impl NetworkData {
                     value: None,
                     child: vec![
                         MonitorRow {
-                            title: String::from("Download Total"),
-                            value: Some(format!("{} Bytes", network.download_total)),
+                            title: format!("{} Download", network.interface),
+                            value: Some(get_bytevalue_from(network.download_total)),
                             child: vec![]
                         },
                         MonitorRow {
-                            title: String::from("Upload Total"),
-                            value: Some(format!("{} Bytes", network.upload_total)),
+                            title: format!("{} Upload", network.interface),
+                            value: Some(get_bytevalue_from(network.upload_total)),
                             child: vec![]
                         }
                     ]

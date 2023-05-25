@@ -10,10 +10,41 @@ use gtk::{glib, prelude::*};
 use nvml_wrapper::{Nvml, error::NvmlError};
 use sysinfo::System;
 
+pub struct MonitorData {
+    pub data: Vec<MonitorRow>
+}
+
+#[derive(Clone)]
 pub struct MonitorRow {
-    title: String,
-    value: Option<String>,
-    child: Vec<MonitorRow>,
+    pub title: String,
+    pub value: Option<String>,
+    pub child: Vec<MonitorRow>,
+}
+
+impl MonitorRow {
+    fn to_single_child(&self) -> Vec<MonitorRow> {
+        let mut elements = Vec::new();
+        for c in &self.child {
+            if !c.child.is_empty() {
+                elements.append(&mut c.to_single_child());
+            } else {
+                elements.push(c.clone());
+            }
+        }
+        elements
+    }
+
+    pub fn on_single_list(data: Vec<MonitorRow>) -> Vec<MonitorRow> {
+        let mut elements = Vec::new();
+        for r in data {
+            if !r.child.is_empty() {
+                elements.append(&mut r.to_single_child());
+            } else {
+                elements.push(r.clone());
+            }
+        }
+        elements
+    }
 }
 
 pub fn get_hardware_data(sys: &System, nvidia: &Result<Nvml, NvmlError>) -> Vec<MonitorRow> {
@@ -28,55 +59,7 @@ pub fn get_hardware_data(sys: &System, nvidia: &Result<Nvml, NvmlError>) -> Vec<
     vec![cpu, ram, disk, network, sensors, gpu]
 }
 
-fn simulate_data() -> Vec<MonitorRow> {
-    vec![
-        MonitorRow {
-            title: String::from("CPU"),
-            value: None,
-            child: vec![
-                MonitorRow {
-                    title: String::from("Usage"),
-                    value: None,
-                    child: vec![
-                        MonitorRow {
-                            child: vec![],
-                            title: String::from("0 Core"),
-                            value: Some(String::from("30%")),
-                        },
-                        MonitorRow {
-                            child: vec![],
-                            title: String::from("1 Core"),
-                            value: Some(String::from("2%")),
-                        },
-                    ],
-                },
-                MonitorRow {
-                    child: vec![],
-                    title: String::from("Frequency"),
-                    value: Some(String::from("4600 MHz")),
-                },
-            ],
-        },
-        MonitorRow {
-            title: String::from("GPU"),
-            value: None,
-            child: vec![
-                MonitorRow {
-                    child: vec![],
-                    title: String::from("Usage"),
-                    value: Some(String::from("30%")),
-                },
-                MonitorRow {
-                    child: vec![],
-                    title: String::from("Power"),
-                    value: Some(String::from("46 W")),
-                },
-            ],
-        },
-    ]
-}
-
-fn populate_data(store: &gtk::TreeStore, data: Vec<MonitorRow>, old_iter: Option<&gtk::TreeIter>) {
+pub fn populate_data(store: &gtk::TreeStore, data: Vec<MonitorRow>, old_iter: Option<&gtk::TreeIter>) {
 
     for r in data {
 

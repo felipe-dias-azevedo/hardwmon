@@ -40,22 +40,22 @@ impl RamData {
                     value: None,
                     child: vec![
                         MonitorRow {
-                            title: String::from("Used"),
+                            title: String::from("RAM Used"),
                             value: Some(format!("{:.2} GB", self.ram_used / 1_000_000_000f64)),
                             child: vec![]
                         },
                         MonitorRow {
-                            title: String::from("Total"),
+                            title: String::from("RAM Total"),
                             value: Some(format!("{:.2} GB", self.ram_total / 1_000_000_000f64)),
                             child: vec![]
                         },
                         MonitorRow {
-                            title: String::from("Available"),
+                            title: String::from("RAM Available"),
                             value: Some(format!("{:.2} GB", self.ram_available / 1_000_000_000f64)),
                             child: vec![]
                         },
                         MonitorRow {
-                            title: String::from("Usage"),
+                            title: String::from("RAM Usage"),
                             value: Some(format!("{:.2}%", (self.ram_used / self.ram_total) * 100f64)),
                             child: vec![]
                         }
@@ -66,22 +66,22 @@ impl RamData {
                     value: None,
                     child: vec![
                         MonitorRow {
-                            title: String::from("Used"),
+                            title: String::from("SWAP Used"),
                             value: Some(format!("{:.2} GB", self.swap_used / 1_000_000_000f64)),
                             child: vec![]
                         },
                         MonitorRow {
-                            title: String::from("Total"),
+                            title: String::from("SWAP Total"),
                             value: Some(format!("{:.2} GB", self.swap_total / 1_000_000_000f64)),
                             child: vec![]
                         },
                         MonitorRow {
-                            title: String::from("Available"),
+                            title: String::from("SWAP Available"),
                             value: Some(format!("{:.2} GB", self.swap_available / 1_000_000_000f64)),
                             child: vec![]
                         },
                         MonitorRow {
-                            title: String::from("Usage"),
+                            title: String::from("SWAP Usage"),
                             value: Some(format!("{:.2}%", (self.swap_used / self.swap_total) * 100f64)),
                             child: vec![]
                         }

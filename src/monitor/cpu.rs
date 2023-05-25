@@ -54,7 +54,7 @@ impl CpuData {
                     value: None,
                     child: self.frequency.iter().enumerate().map(|(i, f)| {
                         MonitorRow {
-                            title: format!("Core {}", i),
+                            title: format!("Frequency Core {}", i),
                             value: Some(format!("{} MHz", f)),
                             child: vec![],
                         }
@@ -65,7 +65,7 @@ impl CpuData {
                     value: None,
                     child: self.usage.iter().enumerate().map(|(i, f)| {
                         MonitorRow {
-                            title: format!("Core {}", i),
+                            title: format!("Usage Core {}", i),
                             value: Some(format!("{:.0}%", f)),
                             child: vec![],
                         }

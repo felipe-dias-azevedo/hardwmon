@@ -1,5 +1,6 @@
 use sysinfo::{DiskExt, DiskType, ProcessExt, System, SystemExt};
 use crate::monitor::MonitorRow;
+use crate::views::get_bytevalue_from;
 
 pub struct DisksData {
     pub disks: Vec<DiskData>,
@@ -55,7 +56,7 @@ impl DisksData {
                 let read = disk_usage.read_bytes;
                 let write = disk_usage.written_bytes;
 
-                if read == 0 || write == 0 {
+                if read == 0 && write == 0 {
                     return None;
                 }
 
@@ -83,16 +84,16 @@ impl DisksData {
                 MonitorRow {
                     title: String::from("Read Total"),
                     value: match self.read_total {
-                        Some(x) => Some(format!("{} Bytes", x)),
-                        _ => Some(String::from("0 Bytes"))
+                        Some(x) => Some(get_bytevalue_from(x)),
+                        _ => Some(get_bytevalue_from(0))
                     },
                     child: vec![],
                 },
                 MonitorRow {
                     title: String::from("Write Total"),
                     value: match self.write_total {
-                        Some(x) => Some(format!("{} Bytes", x)),
-                        _ => Some(String::from("0 Bytes"))
+                        Some(x) => Some(get_bytevalue_from(x)),
+                        _ => Some(get_bytevalue_from(0))
                     },
                     child: vec![],
                 },
@@ -105,42 +106,42 @@ impl DisksData {
                             value: None,
                             child: vec![
                                 MonitorRow {
-                                    title: String::from("Disk Type"),
+                                    title: format!("{} Disk Type", d.name),
                                     value: d.disk_type.to_owned(),
                                     child: vec![],
                                 },
                                 MonitorRow {
-                                    title: String::from("File System"),
+                                    title: format!("{} File System", d.name),
                                     value: d.file_system.to_owned(),
                                     child: vec![],
                                 },
                                 MonitorRow {
-                                    title: String::from("Mount point"),
+                                    title: format!("{} Mount point", d.name),
                                     value: Some(d.mount_point.to_owned()),
                                     child: vec![],
                                 },
                                 MonitorRow {
-                                    title: String::from("Removable"),
+                                    title: format!("{} Removable", d.name),
                                     value: Some(d.removable.to_string()),
                                     child: vec![],
                                 },
                                 MonitorRow {
-                                    title: String::from("Space Used"),
+                                    title: format!("{} Space Used", d.name),
                                     value: Some(format!("{:.2} GB", d.space_used / 1_000_000_000f64)),
                                     child: vec![],
                                 },
                                 MonitorRow {
-                                    title: String::from("Space Total"),
+                                    title: format!("{} Space Total", d.name),
                                     value: Some(format!("{:.2} GB", d.space_total / 1_000_000_000f64)),
                                     child: vec![],
                                 },
                                 MonitorRow {
-                                    title: String::from("Space Available"),
+                                    title: format!("{} Space Available", d.name),
                                     value: Some(format!("{:.2} GB", d.space_available / 1_000_000_000f64)),
                                     child: vec![],
                                 },
                                 MonitorRow {
-                                    title: String::from("Space Usage"),
+                                    title: format!("{} Space Usage", d.name),
                                     value: Some(format!("{:.2}%", (d.space_used / d.space_total) * 100f64)),
                                     child: vec![],
                                 },
