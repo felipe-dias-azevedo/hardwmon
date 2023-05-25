@@ -1,6 +1,8 @@
 use crate::views::about_window::AboutWindow;
-use gtk::glib::clone;
+use gtk::glib::{clone, PropertyGet};
 use gtk::prelude::*;
+use crate::monitor;
+use crate::monitor::MonitorRow;
 
 pub struct Window {
     pub window: gtk::Window,
@@ -64,7 +66,7 @@ impl Window {
 
     pub fn on_close(&self) {
         self.window.connect_delete_event(|_, _| {
-            gtk::main_quit();
+            // gtk::main_quit();
 
             Inhibit(false)
         });
@@ -112,5 +114,45 @@ impl Window {
         column.set_min_width(150);
         column.set_title("Value");
         self.maintreeview.append_column(&column);
+    }
+
+    fn iter_tree(old_tree_model: &gtk::TreeStore, iter: &gtk::TreeIter, data: &Vec<MonitorRow>) -> bool {
+        let value = old_tree_model.value(&iter, 0).get::<String>().unwrap();
+
+        let row = data.iter().find(|&x| x.title == value);
+
+        if let Some(row) = row {
+            old_tree_model.set_value(&iter, 1, &row.value.to_value());
+        } else {
+            old_tree_model.set_value(&iter, 1, &"-".to_value());
+        }
+
+        !old_tree_model.iter_next(&iter)
+    }
+
+    fn iter_tree_child(old_tree_model: &gtk::TreeStore, iter: &gtk::TreeIter, data: &Vec<MonitorRow>) {
+        let mut done = false;
+
+        while !done {
+            if !old_tree_model.iter_has_child(&iter) {
+                done = Self::iter_tree(&old_tree_model, &iter, data);
+            } else {
+                let child_iter = old_tree_model.iter_nth_child(Some(&iter), 0).unwrap();
+                Self::iter_tree_child(&old_tree_model, &child_iter, data);
+                done = !old_tree_model.iter_next(&iter);
+            }
+        }
+    }
+
+    pub fn update_treeview(&self, data: Vec<MonitorRow>) {
+        if let Some(old_tree_model) = self.maintreeview.model() {
+            let old_tree_model = old_tree_model.downcast::<gtk::TreeStore>().unwrap();
+
+            let iter = old_tree_model.iter_first();
+
+            if let Some(iter) = iter {
+                Self::iter_tree_child(&old_tree_model, &iter, &data);
+            }
+        }
     }
 }

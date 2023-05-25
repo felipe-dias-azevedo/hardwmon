@@ -1,35 +1,76 @@
 use psutil::sensors::temperatures;
+use crate::monitor::MonitorRow;
 
 pub struct SensorData {
     name: String,
-    label: String,
+    label: Option<String>,
     temperature: f64,
-    temperature_max: f64,
+    temperature_max: Option<f64>,
 }
 
-pub fn get_sensors_data() {
-    {
-        println!("------ Sensors -----");
+impl SensorData {
+    pub fn new() -> Vec<SensorData> {
         let temperatures = temperatures();
-        for t in temperatures {
-            if let Some(temp) = t.ok() {
+
+        temperatures
+            .into_iter()
+            .filter_map(|t| t.ok())
+            .map(|temp| {
                 let unit = temp.unit();
-                let celsius = temp.current().celsius().round();
+                let temperature = temp.current().celsius().round();
+                
+                let temperature_max = match temp.high() {
+                    Some(x) => Some(x.celsius().round()),
+                    _ => None,
+                };
+                let label = match temp.label() {
+                    Some(x) => Some(String::from(x)),
+                    _ => None,
+                };
 
-                println!("Unit: {}", unit);
-
-                if let Some(max) = temp.high() {
-                    let max = max.celsius().round();
-                    println!("Temperature: {:.0} ºC (MAX: {:.0} ºC)", celsius, max);
-                } else {
-                    println!("Temperature: {:.0} ºC", celsius);
+                SensorData {
+                    name: String::from(unit),
+                    label,
+                    temperature,
+                    temperature_max,
                 }
+            })
+            .collect()
+    }
 
-                if let Some(label) = temp.label() {
-                    println!("Label: {}", label);
+    pub fn format(sensors: Vec<SensorData>) -> MonitorRow {
+        MonitorRow {
+            title: String::from("SENSORS"),
+            value: None,
+            child: sensors.iter().map(|sensor| {
+                MonitorRow {
+                    title: sensor.name.to_owned(),
+                    value: None,
+                    child: vec![
+                        MonitorRow {
+                            title: format!("{} Temperature", sensor.label.as_ref().unwrap_or(&String::from(""))),
+                            value: Some(format!("{:.0} ºC", sensor.temperature)),
+                            child: vec![]
+                        },
+                        MonitorRow {
+                            title: format!("{} Temperature Max", sensor.label.as_ref().unwrap_or(&String::from(""))),
+                            value: match sensor.temperature_max {
+                                Some(x) => Some(format!("{:.0} ºC", x)),
+                                _ => Some(String::from("-"))
+                            },
+                            child: vec![]
+                        },
+                        // MonitorRow {
+                        //     title: String::from("Label"),
+                        //     value: match &sensor.label {
+                        //         Some(x) => Some(x.to_owned()),
+                        //         _ => Some(String::from("-"))
+                        //     },
+                        //     child: vec![]
+                        // }
+                    ]
                 }
-                println!();
-            }
+            }).collect()
         }
     }
 }
